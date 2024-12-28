@@ -8,6 +8,7 @@ This project is a Book Management API built with Node.js, Express, TypeScript, a
 - Real-time WebSocket integration.
 - MongoDB for data storage.
 - Fully containerized with Docker and Docker Compose.
+- CI/CD pipeline using GitHub Actions.
 - Organized and scalable project structure.
 
 ## Prerequisites
@@ -84,6 +85,79 @@ docker exec -it <container_name> npm test
 ```
 
 Replace `<container_name>` with the name of the `app` container.
+
+## Continuous Integration and Continuous Deployment (CI/CD)
+
+This project uses GitHub Actions for CI/CD.
+
+### CI/CD Pipeline Overview
+
+1. **Build and Test:** Ensures the application builds correctly and passes all tests.
+2. **Docker Build and Push:** Builds a Docker image and pushes it to Docker Hub.
+3. **Deployment:** Deploys the Docker image to a production server (optional).
+
+### GitHub Actions Configuration
+
+Create a `.github/workflows/main.yml` file with the following content:
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/book-management-api:latest
+```
+
+### Step 7: Configure Secrets in GitHub
+
+Go to your GitHub repository, and under `Settings` > `Secrets and variables` > `Actions`, add the following secrets:
+
+- `DOCKER_USERNAME`: Your Docker Hub username.
+- `DOCKER_PASSWORD`: Your Docker Hub password.
 
 ## Project Structure
 

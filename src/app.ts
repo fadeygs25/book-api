@@ -1,26 +1,22 @@
 import express from 'express';
-import { config } from './config/env';
-import { connectDB } from './config/database';
-import { bookRoutes } from './routes/book.route';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import dotenv from 'dotenv';
+import http from 'http';
+import bookRoutes from './routes/bookRoutes';
+import { connectDB } from './config/db';
+import { initializeWebSocket } from './events/webSocket';
+import { errorHandler } from './middlewares/errorHandler';
 
-// Initialize Express app
+dotenv.config();
+
 const app = express();
-const server = createServer(app);
-const io = new Server(server);
+const server = http.createServer(app);
+const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(express.json());
-
-// Routes
 app.use('/api/books', bookRoutes);
+app.use(errorHandler);
 
-// WebSocket setup
-io.on('connection', (socket) => {
-    console.log('A user connected');
+connectDB();
+initializeWebSocket(server);
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected');
-    });
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
